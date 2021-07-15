@@ -17,7 +17,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -25,6 +27,7 @@ import android.os.AsyncTask;
 import android.device.PrinterManager;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.FileProvider;
 import android.util.Base64;
@@ -34,6 +37,11 @@ public class HuajieGM extends CordovaPlugin {
     public static final String TAG = "HuajieGM";
     private PrinterManager printer;
     private String applicationId;
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     /**
      * Constructor.
@@ -60,6 +68,20 @@ public class HuajieGM extends CordovaPlugin {
      * @param arg
      */
     public void shareImage(CallbackContext callbackContext, JSONObject arg) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(
+            cordova.getActivity(),
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        );
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                cordova.getActivity(),
+                PERMISSIONS_STORAGE,
+                REQUEST_EXTERNAL_STORAGE
+            );
+        }
+
         new ShareImageTask(
             cordova,
             callbackContext,
